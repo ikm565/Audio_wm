@@ -10,8 +10,8 @@ function [N,M,G,syn_wm,last_frame_used] = distribute(watermark)
     embed_len = 3*W_LEN;
     syn_wm = ones(embed_len,1);
     for i=1:W_LEN
-        syn_wm(i) = 0;
-        syn_wm(i+1) = 0;
-        syn_wm(i+2) = watermark(i);
+        syn_wm((i-1)*3+1) = 0;
+        syn_wm((i-1)*3+2) = 0;
+        syn_wm((i-1)*3+3) = watermark(i);
     end
 end

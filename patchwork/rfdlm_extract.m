@@ -1,4 +1,4 @@
-function [acc_val] = rfdlm_extract(length_audio,in_audio,watermark,delta)
+function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,delta)
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
     [N,M,G,syn_wm,last_frame_used] = distribute(watermark);
     [A,fs]=audioread(in_audio);
@@ -28,5 +28,22 @@ function [acc_val] = rfdlm_extract(length_audio,in_audio,watermark,delta)
             extracted_wm((n-1)*M+m) = mod(floor(R_feature(n,m)/delta),2);
         end
     end
-    acc_val = 1 - sum(xor(syn_wm,extracted_wm))/(length(syn_wm));
+    %get watermark based on synchronization code
+    ex_wm = watermark;
+    for i=1:floor(length(syn_wm)/3)
+        if extracted_wm((i-1)*3+1)== extracted_wm((i-1)*3+2)
+            ex_wm(i) = extracted_wm((i-1)*3+3);
+        else
+            ex_wm(i) = 0;
+        end
+    end
+    acc_val = 1 - sum(xor(watermark,ex_wm))/(length(ex_wm));
+    wrong_mask = ex_wm;
+    for i=1:length(ex_wm)
+        if xor(watermark(i),ex_wm(i))==0
+            wrong_mask(i) = 1;
+        else
+            wrong_mask(i) = 0;
+        end
+    end
 end
