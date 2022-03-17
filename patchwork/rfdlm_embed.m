@@ -1,7 +1,9 @@
-function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermark,delta)
+function [ snr, N, M, G,Q_F_W,Q_feature ] = rfdlm_embed(length_audio,in_audio,out_audio,watermark,delta)
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
     snr = 0;
     [A,fs]=audioread(in_audio);
+%     [A,fs]=mp3read(in_audio);
+    A = reshape(A,[],1);
     A = A(1:length_audio); %529200
 %     %W_LEN = length(watermark);
     %form three segments
@@ -19,7 +21,8 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     every_group_len = floor(La/groups_count);
     used_A_len = every_group_len * groups_count;
     A_ = A(1:used_A_len);
-    A_i = reshape(A_,N,M,G,every_group_len);
+%     A_i = reshape(A_,N,M,G,every_group_len);
+    A_i = reshape(A_,every_group_len,G,M,N);
     A_left = A(used_A_len+1:La);
     
     % calculate the DCT coefficients of A1i,m and A2i,m, and we can obtain the coefficients, as follows:
@@ -27,7 +30,8 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     for n=1:N
         for m=1:M
             for g=1:G
-                DCT_i(n,m,g,:) = dct(A_i(n,m,g,:));%dct returns a one dimention matrix from low frequency to high
+%                 DCT_i(n,m,g,:) = dct(A_i(n,m,g,:));%dct returns a one dimention matrix from low frequency to high
+                DCT_i(:,g,m,n) = dct(A_i(:,g,m,n));
             end
         end
     end
@@ -35,23 +39,47 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     %We modify the FDLM feature F1i,m and F2i,m to Q1i,m and Q2i,m , defined as follows.
     %delta = 2;
     [Q_feature, K, alpha] = fdlm(DCT_i,delta);
+    [feature, K, alpha] = fdlm_ex(DCT_i);
     %embed watermark wm by adding or subtracting/2 to the modified FDLM feature Q1i,m , QF2i,m = Q2i,m .
     Q_F_W = Q_feature;
+    R_feature = ones(N,M,1);
     for n=1:N-1
         for m=1:M
-            if mod(Q_feature(n,m,1)/delta,2) == syn_wm((n-1)*M+m)
-                Q_F_W(n,m,1) = Q_feature(n,m,1) + delta/2;
+%             R_feature(n,m) = abs(Q_feature(n,m,1)-Q_feature(n,m,2));
+            R_feature(n,m) = Q_feature(n,m,1)-Q_feature(n,m,2);
+            if Q_feature(n,m,1)>Q_feature(n,m,2)
+%             if 1 == 1
+                if int8(mod(int8(R_feature(n,m,1)/delta),2)) == int8(syn_wm((n-1)*M+m))
+                    Q_F_W(n,m,1) = Q_feature(n,m,1) + delta/2;
+                else
+                    Q_F_W(n,m,1) = Q_feature(n,m,1) - delta/2;
+                end
             else
-                Q_F_W(n,m,1) = Q_feature(n,m,1) - delta/2;
+                if int8(mod(int8(R_feature(n,m,1)/delta),2)) == int8(syn_wm((n-1)*M+m))
+                    Q_F_W(n,m,2) = Q_feature(n,m,2) - delta/2;
+                else
+                    Q_F_W(n,m,2) = Q_feature(n,m,2) + delta/2;
+                end
             end
         end
     end
     % last frame used count is not correctly M
     for m=1:last_frame_used 
-        if mod(Q_feature(N,m,1)/delta,2) == syn_wm((N-1)*M+m)
-            Q_F_W(N,m,1) = Q_feature(N,m,1) + delta/2;
+%         R_feature(N,m) = abs(Q_feature(N,m,1)-Q_feature(N,m,2));
+        R_feature(N,m) = Q_feature(N,m,1)-Q_feature(N,m,2);
+        if Q_feature(N,m,1)>Q_feature(N,m,2)
+%         if 1 == 1
+            if int8(mod(int8(R_feature(N,m,1)/delta),2)) == int8(syn_wm((N-1)*M+m))
+                Q_F_W(N,m,1) = Q_feature(N,m,1) + delta/2;
+            else
+                Q_F_W(N,m,1) = Q_feature(N,m,1) - delta/2;
+            end
         else
-            Q_F_W(N,m,1) = Q_feature(N,m,1) - delta/2;
+            if int8(mod(int8(R_feature(N,m,1)/delta),2)) == int8(syn_wm((N-1)*M+m))
+                Q_F_W(N,m,2) = Q_feature(N,m,2) - delta/2;
+            else
+                Q_F_W(N,m,2) = Q_feature(N,m,2) + delta/2;
+            end
         end
     end
     
@@ -60,10 +88,14 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     for n=1:N-1
         for m=1:M
             for g=1:G
-                index = (Q_F_W(n,m,g)/Q_feature(n,m,g))*(alpha^(1-Q_F_W(n,m,g)/Q_feature(n,m,g)));
-                for k=1:K
+                index = (Q_F_W(n,m,g)/feature(n,m,g))*(alpha^(1-Q_F_W(n,m,g)/feature(n,m,g)));
+                index_correct = (Q_F_W(n,m,g)-feature(n,m,g))/log2(2*alpha) + log2(alpha)/log2(2*alpha);
+                index1 = (Q_F_W(n,m,g)/feature(n,m,g));
+                index2 = 1-(Q_F_W(n,m,g)/feature(n,m,g));
+                for k=1:every_group_len
 %                     index = (Q_F_W(n,m,g)/Q_feature(n,m,g))*(alpha^(1-Q_F_W(n,m,g)/Q_feature(n,m,g)));
-                    DCT_modified(n,m,g,k) = sign(DCT_i(n,m,g,k))*(abs(DCT_i(n,m,g,k))^index);
+%                     DCT_modified(k,g,m,n) = sign(DCT_i(k,g,m,n))*(abs(DCT_i(k,g,m,n))^index_correct);
+                    DCT_modified(k,g,m,n) = sign(DCT_i(k,g,m,n))*(abs(DCT_i(k,g,m,n))^index1)*(alpha^index2);
                 end
             end
         end
@@ -71,10 +103,14 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     % last frame used count is not correctly M
     for m=1:last_frame_used 
         for g=1:G
-            index = (Q_F_W(N,m,g)/Q_feature(N,m,g))*(alpha^(1-Q_F_W(N,m,g)/Q_feature(N,m,g)));
-            for k=1:K
+            index = (Q_F_W(N,m,g)/feature(N,m,g))*(alpha^(1-Q_F_W(N,m,g)/feature(N,m,g)));
+            index_correct = (Q_F_W(n,m,g)-feature(n,m,g))/log2(2*alpha) + log2(alpha)/log2(2*alpha);
+            index1 = (Q_F_W(N,m,g)/feature(N,m,g));
+            index2 = 1-(Q_F_W(N,m,g)/feature(N,m,g));
+            for k=1:every_group_len
 %               index = (Q_F_W(n,m,g)/Q_feature(n,m,g))*(alpha^(1-Q_F_W(n,m,g)/Q_feature(n,m,g)));
-                DCT_modified(N,m,g,k) = sign(DCT_i(N,m,g,k))*(abs(DCT_i(N,m,g,k))^index);
+%                 DCT_modified(k,g,m,N) = sign(DCT_i(k,g,m,N))*(abs(DCT_i(k,g,m,N))^index_correct);
+                DCT_modified(k,g,m,N) = sign(DCT_i(k,g,m,N))*(abs(DCT_i(k,g,m,N))^index1)*(alpha^index2);
             end
         end
     end
@@ -83,15 +119,17 @@ function [ snr, N, M, G ] = rfdlm_embed(length_audio,in_audio,out_audio,watermar
     for n=1:N
         for m=1:M
             for g=1:G
-                A_WM(n,m,g,:) = idct(DCT_modified(n,m,g,:));%dct returns a one dimention matrix from low frequency to high
+%                 A_WM(n,m,g,:) = idct(DCT_modified(n,m,g,:));%dct returns a one dimention matrix from low frequency to high
+                A_WM(:,g,m,n) = idct(DCT_modified(:,g,m,n));
             end
         end
     end
-    A_WM = reshape(A_WM,used_A_len,1);
-    out = [A_WM;A_left];
+    A_WM_ = reshape(A_WM,used_A_len,1);
+    out = [A_WM_;A_left];
     %save the output watermarked audio and calculate the snr
     out = reshape(out,1,[]);%change
     audiowrite(out_audio,out,fs);
+%     mp3write(out,fs,out_audio);
     source_mse = reshape(A,1,[]);
     snr = 10*log10((mse(source_mse)/mse(source_mse-out)));
 end
