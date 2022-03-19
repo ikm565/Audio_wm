@@ -14,7 +14,7 @@ function [ snr, N, M, G,Q_F_W,Q_feature ] = rfdlm_embed(length_audio,in_audio,ou
     N = 2;% frame count
     M = 3;% every frame embed two synchronization codes and one watermark bits 2+1=3
     G = 2;%every segment is formed into 2 group linked to each other(consecutive group)
-    [N,M,G,syn_wm,last_frame_used] = distribute(watermark);
+    [N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num] = distribute(watermark);
     La = length(A);
     segment_count = N*M;
     groups_count = segment_count*G;
