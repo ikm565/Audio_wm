@@ -1,4 +1,4 @@
-function [extracted_wm] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length)
+function [extracted_wm,error,error_mask] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num)
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
 %     [N,M,G,syn_wm,last_frame_used] = distribute(watermark);
     La = length(A);
@@ -33,10 +33,17 @@ function [extracted_wm] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame
     error_mask = xor(syn_wm, extracted_wm);
     
     window_size = floor(length(A_)/(100*N));
-    for i=1:syn_length
-        if int8(extracted_wm(i)) ~= int8(extracted_wm(i+syn_length))
-            A = [A(window_size:-1);ones(window_size,1)];
-            extracted_wm = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used);
-        end
+    first_syn = int8(bin2dec(num2str(reshape(extracted_wm(1:syn_length),1,[]))));
+    second_syn = int8(bin2dec(num2str(reshape(extracted_wm(syn_length+1:syn_length*2),1,[]))));
+    if first_syn ~= second_syn || first_syn > wat_seg_num-1
+        A = [A(window_size+1:length(A));A(1:window_size)];
+        [extracted_wm,error,error_mask] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
     end
+%     for i=1:syn_length
+%         if int8(extracted_wm(i)) ~= int8(extracted_wm(i+syn_length)) || bin2dec()
+% %             A = [A(window_size+1:length(A));zeros(window_size,1)+0.0025];
+%             A = [A(window_size+1:length(A));A(1:window_size)];
+%             extracted_wm = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length);
+%         end
+%     end
 end

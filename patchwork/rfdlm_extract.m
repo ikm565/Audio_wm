@@ -5,7 +5,7 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
     A = reshape(A,[],1);
     A = A(1:length_audio); %529200
     
-    extracted_wm = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length);
+    [extracted_wm,error,error_mask] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
     
     ex_wm = ones(length(watermark),1)-2;
     ex_wm_index = zeros(M-syn_length*2,wat_seg_num);
@@ -19,10 +19,10 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
             end
         end
         if flag
-            index = 0;
-            for j=1:syn_length
-                index = 2*index+extracted_wm((i-1)*M+j);
-            end
+            index = bin2dec(num2str(reshape(extracted_wm((i-1)*M+1:(i-1)*M+syn_length),1,[])));
+%             for j=1:syn_length
+%                 index = 2*index+extracted_wm((i-1)*M+j);
+%             end
 %             ex_wm((i-1)*(M-syn_length*2)+1:(i)*(M-syn_length*2)) = zeros(M-syn_length*2,1);
             ex_wm_index(:,index+1) = extracted_wm((i-1)*M+syn_length*2+1:(i)*M);
         end
