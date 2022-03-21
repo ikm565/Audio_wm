@@ -16,15 +16,19 @@ function [F_A, K, alpha] = fdlm_ex(DCT_i)
                 for k=1:K
 %                     feature_k(k)=log2(abs(DCT_i(k,g,m,n))/alpha);
                     if k==1
-                        if int8(DCT_i(k,g,m,n)) == int8(0)
-                            DCT_i(k,g,m,n) = 1e-5;
+                        plus_num = log2(abs(DCT_i(k,g,m,n))/alpha);
+                        if isinf(plus_num)
+                            now_feature = 0;
+                        else
+                            now_feature = plus_num;
                         end
-                        now_feature = log2(abs(DCT_i(k,g,m,n))/alpha);
                     else
-                        if int8(DCT_i(k,g,m,n)) == int8(0)
-                            DCT_i(k,g,m,n) = 1e-5;
+                        plus_num = log2(abs(DCT_i(k,g,m,n))/alpha);
+                        if isinf(plus_num)
+                            now_feature = now_feature + 0;
+                        else
+                            now_feature = now_feature + plus_num;
                         end
-                        now_feature = now_feature + log2(abs(DCT_i(k,g,m,n))/alpha);
                     end
                 end
                 F_A(n,m,g,1) = abs(now_feature)/K;

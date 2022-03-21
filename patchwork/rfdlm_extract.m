@@ -3,7 +3,10 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
     [N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num] = distribute(watermark);
     [A,fs]=audioread(in_audio);
     A = reshape(A,[],1);
-    A = A(1:length_audio); %529200
+%     move = 4000;
+%     A = A(1+move:length_audio); %529200
+%     A = [A;zeros(move-3000,1)];
+    A = A(1:length_audio);
     
     [extracted_wm,error,error_mask] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
     
@@ -11,20 +14,11 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
     ex_wm_index = zeros(M-syn_length*2,wat_seg_num);
     for i=1:N
         %distinguish if the code is synchronization
-        flag = 1;
-        for j=1:syn_length
-            if int8(extracted_wm((i-1)*M+j)) ~= int8(extracted_wm((i-1)*M+j+syn_length))
-%                 ex_wm((i-1)*(M-syn_length*2)+1:(i)*(M-syn_length*2)) = zeros(M-syn_length*2,1);
-                flag = 0;
-            end
-        end
-        if flag
-            index = bin2dec(num2str(reshape(extracted_wm((i-1)*M+1:(i-1)*M+syn_length),1,[])));
-%             for j=1:syn_length
-%                 index = 2*index+extracted_wm((i-1)*M+j);
-%             end
-%             ex_wm((i-1)*(M-syn_length*2)+1:(i)*(M-syn_length*2)) = zeros(M-syn_length*2,1);
-            ex_wm_index(:,index+1) = extracted_wm((i-1)*M+syn_length*2+1:(i)*M);
+%         flag = 1;
+        index = bin2dec(num2str(reshape(extracted_wm((i-1)*M+1:(i-1)*M+syn_length),1,[])));
+        index_2 = bin2dec(num2str(reshape(extracted_wm((i-1)*M+syn_length+1:(i-1)*M+syn_length*2),1,[])));
+        if index == index_2 && index <= wat_seg_num && index > 0
+            ex_wm_index(:,index) = extracted_wm((i-1)*M+syn_length*2+1:(i)*M);
         end
     end
     
@@ -33,6 +27,7 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
     end
     
     acc_val = 1 - sum(xor(watermark,ex_wm))/(length(ex_wm));
+    disp(acc_val);
     wrong_mask = ex_wm;
     for i=1:length(ex_wm)
         if xor(watermark(i),ex_wm(i))==0

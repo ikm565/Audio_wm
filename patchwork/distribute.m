@@ -2,7 +2,7 @@ function [N,M,G,syn_wm_all,last_frame_used,syn_length,wat_seg_num] = distribute(
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
     wat_num= 2;
     wat_seg_num = 4;
-    syn_length = 10; %log2(wat_seg_num)
+    syn_length = 6; %log2(wat_seg_num)
 %     copy_wm = ones(length(watermark)*wat_num)
 %     for i=1:wat_num-1
 %         copy_wm = [copy_wm,watermark];
@@ -22,7 +22,7 @@ function [N,M,G,syn_wm_all,last_frame_used,syn_length,wat_seg_num] = distribute(
     
     syn_code = ones(wat_seg_num*syn_length,1);
     for i=1:wat_seg_num
-        code = dec2bin(i-1,syn_length) - '0';
+        code = dec2bin(i,syn_length) - '0';
         for j=1:syn_length
             syn_code((i-1)*syn_length+j) = code(j);
         end

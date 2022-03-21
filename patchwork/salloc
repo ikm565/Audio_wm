@@ -1,0 +1,1 @@
+salloc -p cpu4 -N 1 -c 2 --mem 2G
