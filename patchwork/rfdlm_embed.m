@@ -128,7 +128,7 @@ function [ snr, N, M, G,Q_F_W,Q_feature ] = rfdlm_embed(length_audio,in_audio,ou
     out = [A_WM_;A_left];
     %save the output watermarked audio and calculate the snr
     out = reshape(out,1,[]);%change
-    audiowrite(out_audio,out,fs);
+    audiowrite(out_audio,out,44100);
 %     mp3write(out,fs,out_audio);
     source_mse = reshape(A,1,[]);
     snr = 10*log10((mse(source_mse)/mse(source_mse-out)));

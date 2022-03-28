@@ -1,6 +1,6 @@
 function [N,M,G,syn_wm_all,last_frame_used,syn_length,wat_seg_num] = distribute(watermark)
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
-    wat_num= 2;
+    wat_num= 1;
     wat_seg_num = 4;
     syn_length = 6; %log2(wat_seg_num)
 %     copy_wm = ones(length(watermark)*wat_num)

@@ -2,13 +2,9 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
     [N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num] = distribute(watermark);
     [A,fs]=audioread(in_audio);
-    A = reshape(A,[],1);
-%     move = 4000;
-%     A = A(1+move:length_audio); %529200
-%     A = [A;zeros(move-3000,1)];
-    A = A(1:length_audio);
+    C = shift(A*5/2,length_audio);
     
-    [extracted_wm,error,error_mask] = loop_extract(A,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
+    [extracted_wm,error,error_mask] = loop_extract2(C,length_audio,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
     
     ex_wm = ones(length(watermark),1)-2;
     ex_wm_index = zeros(M-syn_length*2,wat_seg_num);
@@ -27,7 +23,6 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
     end
     
     acc_val = 1 - sum(xor(watermark,ex_wm))/(length(ex_wm));
-    disp(acc_val);
     wrong_mask = ex_wm;
     for i=1:length(ex_wm)
         if xor(watermark(i),ex_wm(i))==0

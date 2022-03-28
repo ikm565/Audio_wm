@@ -24,23 +24,9 @@
 % DCT(:,1,1,1) = b(:,1,1,1);
 % DCT(:,1,1,1)
 
-[A_,fs] = audioread('out.wav');
-[B_,fs] = audioread('lla_out.wav');
-len = 8000;
-A = A_(1:5000)/10;
-T=1;
+[A,fs] = audioread('a_out.wav');
+A = a
+T=1/fs;
 t=(1:length(A))*T;
 subplot(211);
 plot(t,A);
-
-B = B_(500000:500000+7000);
-t=(1:length(B))*T;
-subplot(212);
-plot(t,B);
-
-[B_,fs] = audioread('lla_out.wav');
-B1 = B_(507000-100000:507000);
-B2 = A_(500000-100000:500000)/5;
-audiowrite('forward.wav',B1,16000);
-audiowrite('backward.wav',B2,16000);
-
