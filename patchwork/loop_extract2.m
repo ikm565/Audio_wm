@@ -41,22 +41,22 @@ function [extracted_wm,error,error_mask] = loop_extract2(C,length_audio,watermar
         first_syn = int8(bin2dec(num2str(reshape(extracted_wm(1:syn_length),1,[]))));
         second_syn = int8(bin2dec(num2str(reshape(extracted_wm(syn_length+1:syn_length*2),1,[]))));
         loop_size = flag*window_size;
-        if error < 70
+        if error < 30
             fprintf('%d ', loop_size);
-            fprintf('%d ', (108-error)/108);
+            fprintf('%d ', error);
             fprintf('\n');
         end
-        % if first_syn == second_syn
-        %     fprintf('%d ', loop_size);
-        %     fprintf('%d ', [first_syn,second_syn,error]);
-        %     fprintf('\n');
-        % end
+        if first_syn == second_syn
+            fprintf('%d ', loop_size);
+            fprintf('%d ', [first_syn,second_syn,error]);
+            fprintf('\n');
+        end
         
         if first_syn ~= second_syn || first_syn > wat_seg_num || first_syn <= 0
 %             A = [A(window_size+1:length(A));A(1:window_size)];
             flag = flag + 1;
         else
-            flag = flag + 1;
+            flag = 0;
         end
     end
 end

@@ -2,7 +2,7 @@ function [acc_val, wrong_mask] = rfdlm_extract(length_audio,in_audio,watermark,d
 %coded by Chang Liu(James Ruslin:hichangliu@mail.ustc.edu.cn) in 5/3/2022
     [N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num] = distribute(watermark);
     [A,fs]=audioread(in_audio);
-    C = shift(A*5/2,length_audio);
+    C = shift(A,length_audio);
     
     [extracted_wm,error,error_mask] = loop_extract2(C,length_audio,watermark,delta,N,M,G,syn_wm,last_frame_used,syn_length,wat_seg_num);
     
