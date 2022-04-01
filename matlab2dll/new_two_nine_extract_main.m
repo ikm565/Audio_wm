@@ -1,3 +1,14 @@
+% /*
+%  * @Author: Chang Liu
+%  * @Date: 2022-03-20 17:45:27
+%  * @LastEditors: Chang Liu
+%  * @LastEditTime: 2022-03-30 21:25:02
+%  * @FilePath: /matlab2dll/new_two_nine_extract_main.m
+%  * @Description: 
+%  * 
+%  * Copyright (c) 2022 by Chang Liu/USTC, All Rights Reserved. 
+%  */
+
 clc;
 clear;
 inp = 'E:\worksapce\python_worksapce\matlab_audio_watermark\Audio-Watermarking-master\jazz.wav';

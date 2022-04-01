@@ -41,7 +41,7 @@ function [extracted_wm,error,error_mask] = loop_extract2(C,length_audio,watermar
         first_syn = int8(bin2dec(num2str(reshape(extracted_wm(1:syn_length),1,[]))));
         second_syn = int8(bin2dec(num2str(reshape(extracted_wm(syn_length+1:syn_length*2),1,[]))));
         loop_size = flag*window_size;
-        if error < 30
+        if error < 10
             fprintf('%d ', loop_size);
             fprintf('%d ', error);
             fprintf('\n');

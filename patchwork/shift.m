@@ -3,7 +3,7 @@ function [C] = shift(A,length_audio)
     record_length = length(B);
     move = 6000; %move < record_length-length_audio
     C = B(1+move:record_length); %529200
-    C = [C;zeros(move,1)];
+    % C = [C;zeros(move,1)];
 %     A = A(1:length_audio);
 end
 

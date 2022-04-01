@@ -1,0 +1,10 @@
+#!/bin/bash
+#SBATCH -p gpu4       # 在 gpu1 分区运行（不写默认为 cpu1）
+#SBATCH -N 1          # 只在一个节点上运行任务
+#SBATCH -c 2          # 申请 CPU 核心：1个
+#SBATCH --mem 8G     # 申请内存：500 MB
+#SBATCH --gres gpu:1  # 分配1个GPU（纯 CPU 任务不用写）
+#SBATCH -o val.out
+echo "job begin"
+python traditional_attack.py 1 ../results/test/audio/original/ 
+echo "job end"

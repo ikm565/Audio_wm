@@ -1,11 +1,21 @@
 #!/bin/bash
+###
+ # @Author: Chang Liu
+ # @Date: 2022-03-31 17:33:03
+ # @LastEditors: Chang Liu
+ # @LastEditTime: 2022-04-01 09:42:36
+ # @FilePath: /patchwork/sh
+ # @Description: 
+ # 
+ # Copyright (c) 2022 by Chang Liu/USTC, All Rights Reserved. 
+### 
 #SBATCH -p cpu3
 #SBATCH -c 2
 #SBATCH --mem 2G
-#SBATCH -o job.out # 注意可以修改"job"为与任务相关的内容方便以后查询实验结果
+#SBATCH -o log/job_extract_20.out # 注意可以修改"job"为与任务相关的内容方便以后查询实验结果
 
 date
 module load matlab
 # 下面的 test_cpu.m 换成你的 MATLAB 脚本的路径
-srun matlab -nodisplay -nosplash -nodesktop -r "run('lc_test_embed.m'); exit;"
+srun matlab -nodisplay -nosplash -nodesktop -r "run('lc_test_extract.m'); exit;" #lc_test_embed.m  lc_test_extract.m
 date
